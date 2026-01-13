@@ -60,8 +60,8 @@ if page == "Model Comparison":
     metrics_df = pd.DataFrame(metrics).T  # transpose view
     st.dataframe(metrics_df)
 
-    models = ["Logistic Regression", "Decision Tree", "KNN", "Naive Bayes", "Random Forest", "XGBoost"]
-    selected_model = st.selectbox("Select a Model for detailed analysis:", models)
+    model_names = list(models.keys())
+    selected_model = st.selectbox("Select a Model for detailed analysis:", model_names)
     st.subheader(f"{selected_model}")
 
     col1, col2 = st.columns(2)
@@ -91,8 +91,38 @@ if page == "Model Comparison":
 elif page == "Predict on New Data":
     st.markdown('<h2 class="main-header">Predict Breast Cancer on Custom Input</h2>', unsafe_allow_html=True)
     st.header("Upload Test Data and Make Predictions")
-    st.info(
-        "Upload a CSV file with test data. The file should have the same features as the training data (excluding the target column).")
+
+    # Load models once
+    models, X_test, y_test = load_models()
+
+    # Dropdown to select trained model
+    model_names = list(models.keys())
+    selected_model = st.selectbox("Select a Trained Model", model_names)
+
+    uploaded_file = st.file_uploader("Upload CSV File for Prediction", type=["csv"])
+
+    if uploaded_file is not None:
+        test_df = pd.read_csv(uploaded_file)
+        st.write("Uploaded Test Data")
+        st.dataframe(test_df)
+
+        # Predict
+        if st.button("Run Prediction"):
+            model = models[selected_model]
+            preds = model.predict(test_df)
+
+            pred_df = pd.DataFrame({
+                "Prediction": preds
+            })
+
+            st.subheader("Prediction Results")
+            st.dataframe(pred_df)
+
+            # Optional: convert 0/1 to labels (Benign/Malignant)
+            st.subheader("Prediction Labels")
+            pred_df["Label"] = pred_df["Prediction"].map({0: "Benign", 1: "Malignant"})
+            st.dataframe(pred_df)
+
 
 
 # PAGE 3: Dataset Information

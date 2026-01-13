@@ -10,6 +10,7 @@ from sklearn.metrics import (
 
 
 def evaluate_models(models, X_test, y_test):
+    print("Evaluating Models....")
     metrics = {}
     confusion_matrices = {}
 
@@ -33,5 +34,5 @@ def evaluate_models(models, X_test, y_test):
         }
         cm = confusion_matrix(y_test, y_pred)
         confusion_matrices[name] = cm
-
+    print("Models Evaluation Completed....")
     return metrics, confusion_matrices
