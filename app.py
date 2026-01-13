@@ -1,4 +1,9 @@
 import streamlit as st
+from train_models import train_all_models
+from evaluate_models import evaluate_models
+import pandas as pd
+import seaborn as sns
+import matplotlib.pyplot as plt
 
 # Page Configuration
 st.set_page_config(page_title="ML Classification Models Comparison", layout="wide")
@@ -31,24 +36,56 @@ page = st.sidebar.radio("Go to:", ["Model Comparison", "Predict on New Data", "D
 
 
 # Load models
-@st.cache_data
+@st.cache_resource
 def load_models():
-    """Load all trained models"""
-    models = {}
-    scaler = None
-    return models, scaler
+    """Load Trained Models"""
+    models, (X_test, y_test) = train_all_models()
+    return models, X_test, y_test
 
 
 # Load Metrics
 @st.cache_data
-def load_metrics():
+def load_metrics(models, X_test, y_test):
     """Load saved metrics"""
-    return None
+    metrics, confusion_matrices = evaluate_models(models, X_test, y_test)
+    return metrics, confusion_matrices
 
 
 # PAGE 1: Model Comparison
 if page == "Model Comparison":
     st.markdown('<h2 class="main-header">Model Performance Comparison Dashboard</h2>', unsafe_allow_html=True)
+    st.subheader("Evaluation Metrics Table")
+    models, X_test, y_test = load_models()
+    metrics, confusion_matrices = evaluate_models(models, X_test, y_test)
+    metrics_df = pd.DataFrame(metrics).T  # transpose view
+    st.dataframe(metrics_df)
+
+    models = ["Logistic Regression", "Decision Tree", "KNN", "Naive Bayes", "Random Forest", "XGBoost"]
+    selected_model = st.selectbox("Select a Model for detailed analysis:", models)
+    st.subheader(f"{selected_model}")
+
+    col1, col2 = st.columns(2)
+    model_metrics = metrics.get(selected_model, None)
+    with col1:
+        if model_metrics:
+            st.markdown("Metrics")
+            selected_metrics = metrics[selected_model]
+            st.metric("Accuracy", f"{selected_metrics['accuracy']:.4f}")
+            st.metric("AUC Score", f"{selected_metrics['auc']:.4f}")
+            st.metric("Precision", f"{selected_metrics['precision']:.4f}")
+            st.metric("Recall", f"{selected_metrics['recall']:.4f}")
+            st.metric("F1 Score", f"{selected_metrics['f1']:.4f}")
+            st.metric("MCC Score", f"{selected_metrics['mcc']:.4f}")
+
+    with col2:
+        st.subheader("Confusion Matrix")
+        cm = confusion_matrices[selected_model]
+        fig, ax = plt.subplots()
+        sns.heatmap(cm, annot=True, fmt="d", cmap="Blues", ax=ax)
+        ax.set_xlabel("Predicted")
+        ax.set_ylabel("Actual")
+        st.pyplot(fig)
+
 
 # PAGE 2: Predict Data on new Data
 elif page == "Predict on New Data":
