@@ -1,14 +1,16 @@
 import joblib
-import numpy as np
+import matplotlib.pyplot as plt
 import pandas as pd
+import seaborn as sns
 import streamlit as st
-from sklearn.metrics import (
-    accuracy_score,
-    precision_score,
-    recall_score,
-    f1_score,
-    roc_auc_score,
-    matthews_corrcoef
+
+# -----------------------------
+# Page Config
+# -----------------------------
+st.set_page_config(
+    page_title="ML Model Dashboard",
+    page_icon="📊",
+    layout="wide"
 )
 
 
@@ -35,6 +37,20 @@ def load_models():
 models, scaler, metrics = load_models()
 
 # -----------------------------
+# Model Name Mapping
+# -----------------------------
+name_mapping = {
+    "logistic_regression": "Logistic Regression",
+    "decision_tree": "Decision Tree",
+    "knn": "KNN",
+    "naive_bayes": "Naive Bayes",
+    "random_forest": "Random Forest",
+    "xgboost": "XGBoost",
+}
+
+reverse_mapping = {v: k for k, v in name_mapping.items()}
+
+# -----------------------------
 # Sidebar Navigation
 # -----------------------------
 st.sidebar.title("Navigation")
@@ -48,40 +64,88 @@ page = st.sidebar.radio(
 # -----------------------------
 if page == "Model Comparison":
 
-    st.title("📊 Model Performance Comparison")
+    st.title("Adult Income Classification - Model Performance Comparison")
 
-    # Load stored metrics
+    # Convert metrics dict → DataFrame
     metrics_df = pd.DataFrame(metrics).T
 
-    st.subheader("✅ Evaluation Metrics Table")
-    st.dataframe(metrics_df)
+    # Remove confusion matrix column
+    if "Confusion Matrix" in metrics_df.columns:
+        metrics_df = metrics_df.drop(columns=["Confusion Matrix"])
+
+    # Beautify model names
+    metrics_df.index = metrics_df.index.map(
+        lambda x: name_mapping.get(x, x)
+    )
+
+    st.subheader("Evaluation Metrics Table")
+    st.dataframe(metrics_df, width="stretch")
 
     st.info("Metrics computed using training/test split during model training.")
+
+    st.divider()
+
+    # -----------------------------
+    # Confusion Matrix Viewer
+    # -----------------------------
+    st.subheader("Confusion Matrix")
+
+    selected_model = st.selectbox(
+        "Select model to view confusion matrix",
+        metrics_df.index
+    )
+
+    # Convert pretty name → original key
+    selected_model_key = reverse_mapping[selected_model]
+
+    cm_data = metrics[selected_model_key]["Confusion Matrix"]
+    cm_df = pd.DataFrame(cm_data)
+
+    fig, ax = plt.subplots()
+
+    sns.heatmap(
+        cm_df,
+        annot=True,
+        fmt="d",
+        cmap="Blues",
+        cbar=True,
+        linewidths=1,
+        linecolor="black",
+        ax=ax
+    )
+
+    ax.set_title(f"Confusion Matrix — {selected_model}")
+    ax.set_xlabel("Actual")
+    ax.set_ylabel("Predicted")
+
+    st.pyplot(fig)
+
 
 # -----------------------------
 # PAGE 2 — Predict on New Data
 # -----------------------------
 elif page == "Predict on New Data":
 
-    st.title("🔮 Predict on New Data")
+    st.title("Predict on New Data")
 
     uploaded_file = st.file_uploader("Upload New Data (CSV)", key="predict")
-
     model_name = st.selectbox("Select Model", list(models.keys()))
 
     if uploaded_file:
         df = pd.read_csv(uploaded_file)
 
         st.write("📄 Uploaded Data Preview")
-        st.dataframe(df.head())
+        st.dataframe(df.head(), use_container_width=True)
 
         model = models[model_name]
 
         X = df.copy()
 
+        # Drop target column if present
         if "target" in X.columns:
             X = X.drop("target", axis=1)
 
+        # Apply scaler if required
         if model_name in ["Logistic Regression", "KNN"]:
             X = scaler.transform(X)
 
@@ -90,7 +154,7 @@ elif page == "Predict on New Data":
         df["Prediction"] = predictions
 
         st.subheader("✅ Predictions")
-        st.dataframe(df)
+        st.dataframe(df, use_container_width=True)
 
 # -----------------------------
 # PAGE 3 — Dataset Information
