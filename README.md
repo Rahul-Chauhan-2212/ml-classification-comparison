@@ -56,21 +56,11 @@ So This makes it a **_Binary Classification_** Problem.
 
 1. **income** - Income Class (<=50K, >50K)
 
-### Install Dependencies
-
-```commandline
-pip install -r requirements.txt
-```
-
 ### Dataset Division
 
 1. **Main Data** - adult.csv
 2. **Train and Validation Data** - train.csv (90% of actual dataset)
 3. **Test Data** - test.csv - (10% of actual dataset) (_Note - Also downloadable from Streamlit App_)
-
-```commandline
- python prepare_dataset.py
-```
 
 ## Models Used
 
@@ -102,5 +92,94 @@ pip install -r requirements.txt
 * **Most Conservative (High Precision):** Random Forest
 * **Most Sensitive (High Recall):** Naive Bayes
 * **Best Linear Baseline:** Logistic Regression
+
+## Project Structure
+
+```
+ml-classification-comparison/
+│── app.py # Streamlit web application (UI)
+│── train_models.py # Script to train models & save PKL files
+│── prepare_dataset.py # Main Dataset splitting in train and test data
+│── requirements.txt # Python dependencies
+│── README.md # Project documentation
+
+│── adult.csv # Original Adult Income dataset
+│── train.csv # Training dataset (90% split)
+│── test.csv # Testing dataset (10% split)
+
+│── model/
+│ ├── pkl/ # Serialized trained models & artifacts
+│ │ ├── logistic_regression.pkl
+│ │ ├── decision_tree.pkl
+│ │ ├── knn.pkl
+│ │ ├── naive_bayes.pkl
+│ │ ├── random_forest.pkl
+│ │ ├── xgboost.pkl
+│ │ ├── scaler.pkl
+│ │ ├── encoder.pkl
+│ │ └── metrics.pkl
+│ │
+│ └── py/ # Individual ML model scripts
+│ ├── init.py
+│ ├── logistic_regression.py
+│ ├── decision_tree.py
+│ ├── knn.py
+│ ├── naive_bayes.py
+│ ├── random_forest.py
+│ └── xgboost.py
+```
+
+## Installation & Setup
+
+Follow these steps to run the project locally.
+
+---
+
+### Clone the Repository
+
+```bash
+git clone https://github.com/Rahul-Chauhan-2212/ml-classification-comparison.git
+cd ml-classification-comparison
+```
+
+### Install Dependencies
+
+```bash
+pip install -r requirements.txt
+```
+
+### Prepare Dataset
+
+```bash
+ python prepare_dataset.py
+```
+
+### Train Models
+
+```bash
+python train_models.py
+```
+
+### Run Streamlit App
+
+```bash
+streamlit run app.py
+```
+
+## Technologies Used
+
+1. Python 3.8+
+2. Streamlit - Web application framework
+3. Scikit-learn - Machine learning library
+4. XGBoost - Gradient boosting framework
+5. Pandas - Data manipulation
+6. NumPy - Numerical computing
+7. Matplotlib & Seaborn - Data visualization
+8. Joblib - Model serialization
+
+
+
+
+
 
 
