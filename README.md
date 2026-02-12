@@ -2,8 +2,8 @@
 
 ## Problem Statement
 
-This project implements and compares six different machine learning classification models to predict Heart Disease based
-on different properties. The goal is to build an end-to-end ML pipeline that includes model training, evaluation, and
+This project implements and compares six different machine learning classification models to predict whether a person's income exceeds $50K/yr based
+on census data. The goal is to build an end-to-end ML pipeline that includes model training, evaluation, and
 deployment through an interactive Streamlit web application.
 
 The assignment requires:
@@ -16,36 +16,35 @@ The assignment requires:
 
 ## Dataset Description
 
-**Dataset:** Heart Disease Dataset from Kaggle
+**Dataset:** Adult Income Dataset from Kaggle
 
-**Source:** [Kaggle - Heart Disease](https://www.kaggle.com/datasets/johnsmith88/heart-disease-dataset/data)
+**Source:** [Kaggle - Adult Income Dataset](https://www.kaggle.com/datasets/wenruliu/adult-income-dataset)
 
 **Description:**
-This data set dates from 1988 and consists of four databases: Cleveland, Hungary, Switzerland, and Long Beach V. It
-contains 76 attributes, including the predicted attribute, but all published experiments refer to using a subset of 14
-of them. The "target" field refers to the presence of heart disease in the patient. It is integer valued 0 = no disease
-and 1 = disease.
+An individual’s annual income results from various factors. Intuitively, it is influenced by the individual’s education level, age, gender, occupation, and etc.
+This dataset contains 14 attributes extracted from the 1994 Census database.
 So This makes it a **_Binary Classification_** Problem.
 
-**Features (13 input features):**
+**Features (14 input features):**
 
-1. **age** - age in years
-2. **sex** - 1=Male and 0=Female
-3. **cp** - chest pain type (4 values)
-4. **trestbps** - resting blood pressure(in mm Hg)
-5. **chol** - serum cholestoral in mg/dl
-6. **fbs** - fasting blood sugar > 120 mg/dl
-7. **restecg** - resting electrocardiographic results (values 0,1,2)
-8. **thalach** - maximum heart rate achieved
-9. **exang** - exercise induced angina
-10. **oldpeak** - ST depression induced by exercise relative to rest
-11. **slope** - the slope of the peak exercise ST segment
-12. **ca** - number of major vessels (0-3) colored by flourosopy
-13. **thal** - 0 = normal; 1 = fixed defect; 2 = reversable defect
+1. **age** - continuous.
+2. **workclass** - Private, Self-emp-not-inc, Self-emp-inc, Federal-gov, Local-gov, State-gov, Without-pay, Never-worked.
+3. **fnlwgt** - continuous.
+4. **education** - Bachelors, Some-college, 11th, HS-grad, Prof-school, Assoc-acdm, Assoc-voc, 9th, 7th-8th, 12th, Masters, 1st-4th, 10th, Doctorate, 5th-6th, Preschool.
+5. **education-num** - continuous.
+6. **marital-status** - Married-civ-spouse, Divorced, Never-married, Separated, Widowed, Married-spouse-absent, Married-AF-spouse.
+7. **occupation** - Tech-support, Craft-repair, Other-service, Sales, Exec-managerial, Prof-specialty, Handlers-cleaners, Machine-op-inspct, Adm-clerical, Farming-fishing, Transport-moving, Priv-house-serv, Protective-serv, Armed-Forces.
+8. **relationship** - Wife, Own-child, Husband, Not-in-family, Other-relative, Unmarried.
+9. **race** - White, Asian-Pac-Islander, Amer-Indian-Eskimo, Other, Black.
+10. **sex** - Female, Male.
+11. **capital-gain** - continuous.
+12. **capital-loss** - continuous.
+13. **hours-per-week** - continuous.
+14. **native-country** - United-States, Cambodia, England, Puerto-Rico, Canada, Germany, Outlying-US(Guam-USVI-etc), India, Japan, Greece, South, China, Cuba, Iran, Honduras, Philippines, Italy, Poland, Jamaica, Vietnam, Mexico, Portugal, Ireland, France, Dominican-Republic, Laos, Ecuador, Taiwan, Haiti, Columbia, Hungary, Guatemala, Nicaragua, Scotland, Thailand, Yugoslavia, El-Salvador, Trinadad&Tobago, Peru, Hong, Holand-Netherlands.
 
 **Target**
 
-1. **target** - 0 = no disease and 1 = disease
+1. **income** - Income Class (<=50K, >50K)
 
 ## Install Dependencies
 
@@ -55,10 +54,10 @@ pip install -r requirements.txt
 
 ## Dataset Division
 
-1. **Main Data** - heart.csv
+1. **Main Data** - adult.csv
 2. **Train and Validation Data** - train.csv (90% of actual dataset)
 3. **Test Data** - test.csv - (10% of actual dataset) (_Note - Also downloadable from Streamlit App_)
 
 ```commandline
- python prepare-dataset.py
+ python prepare_dataset.py
 ```
