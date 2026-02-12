@@ -34,6 +34,15 @@ def load_models():
     return models, scaler, metrics
 
 
+# -----------------------------
+# Load data once
+# -----------------------------
+@st.cache_data
+def load_data():
+    print("Loading complete dataset....")
+    return pd.read_csv("adult.csv")
+
+
 models, scaler, metrics = load_models()
 
 # -----------------------------
@@ -195,7 +204,15 @@ elif page == "Dataset Information":
     st.subheader("Dataset Exploration")
 
     try:
-        df = pd.read_csv("adult.csv")
+        df = load_data()
+
+        col1, col2, col3, col4 = st.columns(4)
+        col1.metric("Total Rows", df.shape[0])
+        col2.metric("Total Columns", df.shape[1])
+        col3.metric("Memory Usage", f"{df.memory_usage(deep=True).sum() / 1024 ** 2:.2f} MB")
+        col4.metric("Missing Values", df.isnull().sum().sum())
+
+        st.divider()
 
         tabs = st.tabs([
             "First 10 Rows",
@@ -207,11 +224,11 @@ elif page == "Dataset Information":
 
         with tabs[0]:
             st.write("### First 10 Rows")
-            st.dataframe(df.head(10), use_container_width=True)
+            st.dataframe(df.head(10), width="stretch")
 
         with tabs[1]:
             st.write("### Last 10 Rows")
-            st.dataframe(df.tail(10), use_container_width=True)
+            st.dataframe(df.tail(10), width="stretch")
 
         with tabs[2]:
             st.write("### Dataset Statistics")
@@ -220,7 +237,14 @@ elif page == "Dataset Information":
         with tabs[3]:
             st.write("#### Income Distribution")
             fig, ax = plt.subplots()
-            sns.countplot(x="income", data=df, ax=ax, palette="viridis")
+            sns.countplot(
+                x="income",
+                hue="income",
+                data=df,
+                ax=ax,
+                palette={"<=50K": "#4C72B0", ">50K": "#55A868"},
+                legend=False
+            )
             st.pyplot(fig)
 
         with tabs[4]:
