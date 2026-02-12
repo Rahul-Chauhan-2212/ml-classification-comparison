@@ -161,41 +161,94 @@ elif page == "Predict on New Data":
 # -----------------------------
 elif page == "Dataset Information":
 
-    st.title("📚 Dataset Information")
+    st.title("Adult Income Dataset Information")
 
     st.markdown("""
-    ### 🫀 Heart Disease Dataset
+    **Source:** [Kaggle - Adult Income Dataset](https://www.kaggle.com/datasets/wenruliu/adult-income-dataset)
 
-    **Problem Type:** Binary Classification  
-
-    **Goal:** Predict whether a patient has heart disease.
-
-    **Features Include:**
-    - Age
-    - Sex
-    - Chest Pain Type
-    - Resting Blood Pressure
-    - Cholesterol
-    - Fasting Blood Sugar
-    - ECG Results
-    - Max Heart Rate
-    - Exercise Induced Angina
-    - ST Depression
-    - Slope
-    - Number of Major Vessels
-    - Thalassemia
-
-    **Target Variable:**  
-    - `0` → No Heart Disease  
-    - `1` → Heart Disease
-
-    ---
-    ### 🎯 Why This Dataset?
-
-    ✔ Meets assignment criteria (≥12 features, ≥500 rows)  
-    ✔ Suitable for classification models  
-    ✔ Works well with AUC metric  
-    ✔ Popular benchmark dataset
+    **Description:**
+    An individual’s annual income results from various factors. Intuitively, it is influenced by the individual’s education level, age, gender, occupation, and etc.
+    This dataset contains 14 attributes extracted from the 1994 Census database.
+    
+    **Features:**
+    1. **age** - continuous.
+    2. **workclass** - Private, Self-emp-not-inc, Self-emp-inc, Federal-gov, Local-gov, State-gov, Without-pay, Never-worked.
+    3. **fnlwgt** - continuous.
+    4. **education** - Bachelors, Some-college, 11th, HS-grad, Prof-school, Assoc-acdm, Assoc-voc, 9th, 7th-8th, 12th, Masters, 1st-4th, 10th, Doctorate, 5th-6th, Preschool.
+    5. **education-num** - continuous.
+    6. **marital-status** - Married-civ-spouse, Divorced, Never-married, Separated, Widowed, Married-spouse-absent, Married-AF-spouse.
+    7. **occupation** - Tech-support, Craft-repair, Other-service, Sales, Exec-managerial, Prof-specialty, Handlers-cleaners, Machine-op-inspct, Adm-clerical, Farming-fishing, Transport-moving, Priv-house-serv, Protective-serv, Armed-Forces.
+    8. **relationship** - Wife, Own-child, Husband, Not-in-family, Other-relative, Unmarried.
+    9. **race** - White, Asian-Pac-Islander, Amer-Indian-Eskimo, Other, Black.
+    10. **sex** - Female, Male.
+    11. **capital-gain** - continuous.
+    12. **capital-loss** - continuous.
+    13. **hours-per-week** - continuous.
+    14. **native-country** - United-States, Cambodia, England, Puerto-Rico, Canada, Germany, Outlying-US(Guam-USVI-etc), India, Japan, Greece, South, China, Cuba, Iran, Honduras, Philippines, Italy, Poland, Jamaica, Vietnam, Mexico, Portugal, Ireland, France, Dominican-Republic, Laos, Ecuador, Taiwan, Haiti, Columbia, Hungary, Guatemala, Nicaragua, Scotland, Thailand, Yugoslavia, El-Salvador, Trinadad&Tobago, Peru, Hong, Holand-Netherlands.
+    
+    **Target:**
+    - **income**: <=50K, >50K
     """)
 
-    st.success("Dataset description ready for README & PDF submission ✅")
+    st.divider()
+
+    st.subheader("Dataset Exploration")
+
+    try:
+        df = pd.read_csv("adult.csv")
+
+        tabs = st.tabs([
+            "First 10 Rows",
+            "Last 10 Rows",
+            "Dataset Statistics",
+            "Income Distribution",
+            "Correlation Heatmap"
+        ])
+
+        with tabs[0]:
+            st.write("### First 10 Rows")
+            st.dataframe(df.head(10), use_container_width=True)
+
+        with tabs[1]:
+            st.write("### Last 10 Rows")
+            st.dataframe(df.tail(10), use_container_width=True)
+
+        with tabs[2]:
+            st.write("### Dataset Statistics")
+            st.write(df.describe())
+
+        with tabs[3]:
+            st.write("#### Income Distribution")
+            fig, ax = plt.subplots()
+            sns.countplot(x="income", data=df, ax=ax, palette="viridis")
+            st.pyplot(fig)
+
+        with tabs[4]:
+            st.write("#### Correlation Heatmap")
+
+            # Encode categorical columns
+            df_encoded = df.copy()
+            for col in df_encoded.select_dtypes(include=['object']).columns:
+                df_encoded[col] = df_encoded[col].astype('category').cat.codes
+
+            corr = df_encoded.corr()
+
+            # Create larger figure
+            fig, ax = plt.subplots(figsize=(14, 10))
+
+            sns.heatmap(
+                corr,
+                cmap="coolwarm",
+                annot=True,
+                linewidths=0.5,
+                ax=ax
+            )
+
+            ax.set_title("Feature Correlation Matrix", fontsize=16)
+            ax.tick_params(axis='x', labelrotation=45)
+            ax.tick_params(axis='y', labelrotation=0)
+
+            st.pyplot(fig)
+
+    except Exception as e:
+        st.error(f"Error loading dataset: {e}")
