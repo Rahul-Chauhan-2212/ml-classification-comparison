@@ -1,5 +1,6 @@
 import joblib
 import matplotlib.pyplot as plt
+import numpy as np
 import pandas as pd
 import seaborn as sns
 import streamlit as st
@@ -20,18 +21,19 @@ st.set_page_config(
 @st.cache_resource
 def load_models():
     models = {
-        "Logistic Regression": joblib.load("model/pkl/logistic_regression.pkl"),
-        "Decision Tree": joblib.load("model/pkl/decision_tree.pkl"),
-        "KNN": joblib.load("model/pkl/knn.pkl"),
-        "Naive Bayes": joblib.load("model/pkl/naive_bayes.pkl"),
-        "Random Forest": joblib.load("model/pkl/random_forest.pkl"),
-        "XGBoost": joblib.load("model/pkl/xgboost.pkl"),
+        "logistic_regression": joblib.load("model/pkl/logistic_regression.pkl"),
+        "decision_tree": joblib.load("model/pkl/decision_tree.pkl"),
+        "knn": joblib.load("model/pkl/knn.pkl"),
+        "naive_bayes": joblib.load("model/pkl/naive_bayes.pkl"),
+        "random_forest": joblib.load("model/pkl/random_forest.pkl"),
+        "xgboost": joblib.load("model/pkl/xgboost.pkl"),
     }
 
     scaler = joblib.load("model/pkl/scaler.pkl")
     metrics = joblib.load("model/pkl/metrics.pkl")
+    encoder = joblib.load("model/pkl/encoder.pkl")
 
-    return models, scaler, metrics
+    return models, scaler, encoder, metrics
 
 
 # -----------------------------
@@ -43,7 +45,7 @@ def load_data():
     return pd.read_csv("adult.csv")
 
 
-models, scaler, metrics = load_models()
+models, scaler, encoder, metrics = load_models()
 
 # -----------------------------
 # Model Name Mapping
@@ -137,33 +139,127 @@ elif page == "Predict on New Data":
 
     st.title("Predict on New Data")
 
-    uploaded_file = st.file_uploader("Upload New Data (CSV)", key="predict")
-    model_name = st.selectbox("Select Model", list(models.keys()))
+    # -----------------------------
+    # Load Default test.csv
+    # -----------------------------
+    try:
+        sample_df = pd.read_csv("test.csv")
 
+        csv = sample_df.to_csv(index=False).encode("utf-8")
+
+        st.markdown("### 📥 Download Sample Test File")
+
+        st.download_button(
+            label="⬇️ Download test.csv",
+            data=csv,
+            file_name="test.csv",
+            mime="text/csv"
+        )
+
+    except:
+        st.warning("⚠️ test.csv not found in project root")
+
+    st.markdown("---")
+
+    # -----------------------------
+    # Upload Section
+    # -----------------------------
+    uploaded_file = st.file_uploader("Upload New Data (CSV)", key="predict")
+
+    model_name = st.selectbox("Select Model", list(name_mapping.values()))
+
+    selected_model_key = reverse_mapping[model_name]
+
+    # -----------------------------
+    # Select Data Source
+    # -----------------------------
     if uploaded_file:
         df = pd.read_csv(uploaded_file)
+        st.success("✅ Using Uploaded File")
+    else:
+        df = None
 
-        st.write("📄 Uploaded Data Preview")
-        st.dataframe(df.head(), use_container_width=True)
+    # -----------------------------
+    # Prediction Logic
+    # -----------------------------
+    if df is not None:
 
-        model = models[model_name]
+        st.write("📄 Data Preview")
+        st.write("Test Data Size: ", df.shape[0])
+        st.dataframe(df.head(), width="stretch")
+        model = models[selected_model_key]
+
+        print("Shape:", df.shape)
+        print("Duplicate rows:", df.duplicated().sum())
+        print("Dropping duplicate rows...")
+        df = df.drop_duplicates()
+        print("Shape after dropping duplicate: ", df.shape)
+        print("Missing Entries: \n", df.isnull().sum())
+        df.replace('?', np.nan, inplace=True)
+        df = df.dropna()
+        print("Shape after dropping wrong entries:", df.shape)
 
         X = df.copy()
 
         # Drop target column if present
-        if "target" in X.columns:
-            X = X.drop("target", axis=1)
+        if "income" in X.columns:
+            X = X.drop("income", axis=1)
 
-        # Apply scaler if required
-        if model_name in ["Logistic Regression", "KNN"]:
-            X = scaler.transform(X)
+        # -----------------------------
+        # Apply scaler (if needed)
+        # -----------------------------
+        # ------------------------------
+        # Column Types
+        # ------------------------------
+        categorical_cols = X.select_dtypes(include=["object"]).columns
+        numerical_cols = X.select_dtypes(exclude=["object"]).columns
 
-        predictions = model.predict(X)
+        # ------------------------------
+        # Encoding
+        # ------------------------------
+        X_cat = encoder.transform(X[categorical_cols])
 
-        df["Prediction"] = predictions
+        # ------------------------------
+        # Scaling
+        # ------------------------------
+        X_num = scaler.transform(X[numerical_cols])
+
+        # ------------------------------
+        # Combine Features
+        # ------------------------------
+        X_processed = np.hstack([X_num, X_cat])
+
+        y_pred = model.predict(X_processed)
+
+        df["predicted_income"] = y_pred
+        df["predicted_income"] = df["predicted_income"].map({
+            0: "<=50K",
+            1: ">50K"
+        })
+
+        priority_cols = ["income", "predicted_income"]
+        priority_cols = [col for col in priority_cols if col in df.columns]
+
+        df = df[priority_cols + [col for col in df.columns if col not in priority_cols]]
 
         st.subheader("✅ Predictions")
-        st.dataframe(df, use_container_width=True)
+        st.write("📄 The below table has `predicted_income` column which is calculated based on selected model.")
+        st.dataframe(df, width="stretch")
+
+        # -----------------------------
+        # Download Predictions
+        # -----------------------------
+        csv_pred = df.to_csv(index=False).encode("utf-8")
+
+        st.download_button(
+            label="⬇️ Download Predictions Dataset",
+            data=csv_pred,
+            file_name=f"predictions_{selected_model_key}.csv",
+            mime="text/csv"
+        )
+
+    else:
+        st.error("❌ No data available. Please upload a CSV.")
 
 # -----------------------------
 # PAGE 3 — Dataset Information
