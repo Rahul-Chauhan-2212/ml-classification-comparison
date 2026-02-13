@@ -97,7 +97,7 @@ So This makes it a **_Binary Classification_** Problem.
 
 ```
 ml-classification-comparison/
-│── app.py # Streamlit web application (UI)
+│── streamlit_app.py # Streamlit web application (UI)
 │── train_models.py # Script to train models & save PKL files
 │── prepare_dataset.py # Main Dataset splitting in train and test data
 │── requirements.txt # Python dependencies
@@ -163,7 +163,7 @@ python train_models.py
 ### Run Streamlit App
 
 ```bash
-streamlit run app.py
+streamlit run streamlit_app.py
 ```
 
 ## Technologies Used
